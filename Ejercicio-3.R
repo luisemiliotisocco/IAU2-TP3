@@ -4,13 +4,13 @@ library(vroom) # Read and Write Rectangular Text Data Quickly
 library(skimr) # Compact and Flexible Summaries of Data 
 options(scipen = 999) # Eliminar notación cientifica
 
-
 # Cargo los datos exportados de los TPs anteriores:
 #   - Terrenos, con sus variaciones porcentuales por barrio
 #   - Cotización del dolar al día de la fecha
 
-terrenos <- vroom("https://github.com/luisemiliotisocco/IAU2-TP1/blob/master/data/terrenos.csv")
-cotizacion <- vroom("https://github.com/luisemiliotisocco/IAU2-TP2/blob/master/data/cotizacion.csv")
+
+terrenos <- vroom ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP1/master/data/terrenos.csv", sep = ",")
+cotizacion <- vroom("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP2/master/data/cotizacion.csv")
 
 barrios <- st_read("data/barrios/barrios_badata.shp") %>% 
   select(BARRIO, COMUNA) #agrego la información geográfica de los barrios de CABA
