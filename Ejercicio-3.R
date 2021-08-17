@@ -9,7 +9,7 @@ options(scipen = 999) # Eliminar notación cientifica
 #   - Terrenos, con sus variaciones porcentuales por barrio
 #   - Cotización del dolar al día de la fecha
 
-terrenos <- read.csv("data/terrenos.csv")
+terrenos <- read.csv("https://github.com/luisemiliotisocco/IAU2-TP1/blob/master/data/terrenos.csv")
 cotizacion <- read.csv("data/cotizacion.csv")
 
 barrios <- st_read("data/barrios/barrios_badata.shp") %>% 
