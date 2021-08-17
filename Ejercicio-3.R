@@ -9,8 +9,8 @@ options(scipen = 999) # Eliminar notación cientifica
 #   - Terrenos, con sus variaciones porcentuales por barrio
 #   - Cotización del dolar al día de la fecha
 
-terrenos <- read.csv("https://github.com/luisemiliotisocco/IAU2-TP1/blob/master/data/terrenos.csv")
-cotizacion <- read.csv("data/cotizacion.csv")
+terrenos <- vroom("https://github.com/luisemiliotisocco/IAU2-TP1/blob/master/data/terrenos.csv")
+cotizacion <- vroom("https://github.com/luisemiliotisocco/IAU2-TP2/blob/master/data/cotizacion.csv")
 
 barrios <- st_read("data/barrios/barrios_badata.shp") %>% 
   select(BARRIO, COMUNA) #agrego la información geográfica de los barrios de CABA
@@ -79,13 +79,13 @@ ggplot()+
   theme_void()
 
 
-ggplot(terrenos_barrios)+
-  geom_sf(aes(fill=rebote), color="black",)+
-  facet_wrap(~rebote, color="black")+
-  labs(title="¿Cómo fue el rebote?", 
-       caption="Fuente: GCBA")+
-  scale_fill_viridis_d()+
-  theme_void()
+#ggplot(terrenos_barrios)+
+#  geom_sf(aes(fill=rebote), color="black",)+
+#  facet_wrap(~rebote, color="black")+
+#  labs(title="¿Cómo fue el rebote?", 
+#       caption="Fuente: GCBA")+
+#  scale_fill_viridis_d()+
+#  theme_void()
 
 
 
