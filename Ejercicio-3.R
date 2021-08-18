@@ -2,7 +2,7 @@ library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.0
 library(sf) # Simple Features for R, CRAN v1.0-0
 library(vroom) # Read and Write Rectangular Text Data Quickly 
 library(skimr) # Compact and Flexible Summaries of Data 
-#library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data
+library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data
 library(geoAr) # Argentina's Spatial Data Toolbox
 options(scipen = 999) # Eliminar notación cientifica
 
@@ -58,7 +58,8 @@ skim(cotizacion) #una mirada rápida
 
 terrenos_barrios <- left_join(barrios, terrenos, by="BARRIO") #recuperamos la geometría
 
-# primero miraremos cómo fue el comportamiento en el último año
+
+# A fines de este TP vamos a estudiar la variación en el pedíodo 2019-2020
 ggplot()+
   geom_sf(data=terrenos_barrios, fill="gray", color="black")+
   geom_sf(data=terrenos_barrios, aes(fill=VARIACION_19_20), alpha=.75)+
@@ -70,19 +71,31 @@ ggplot()+
        caption="Fuente: GCBA")+
   theme_void()
 
-# ¿Qué barrios crecieron y cuáles cayeron en promedio?
+# ¿Qué barrios crecieron en 2019-2020?
 ggplot()+
   geom_sf(data=terrenos_barrios, fill="gray", color="black")+
   geom_sf(data=terrenos_barrios %>% filter(VARIACION_19_20>=0), fill="chartreuse3")+
   geom_sf(data=terrenos_barrios %>% filter(VARIACION_19_20<0), fill="brown1", color="black")+
   scale_fill_continuous(limits=c(-100, 100), breaks=c(-100, -75, -50, -25, 0, 25, 50, 75, 100))+
   geom_sf_text(data=terrenos_barrios, aes(label=BARRIO), size=1.5)+
-  labs(title="¿Qué barrios crecieron?", 
+  labs(title="¿Qué barrios crecieron en el último período?", 
        subtitle = "Período 2019-2020",
        caption="Fuente: GCBA")+
   theme_void()
 
+# ¿Qué patrón espacial tiene el rebote?
+ggplot()+
+  geom_sf(data=terrenos_barrios %>% drop_na(), aes(fill=rebote), color="black")+
+  scale_fill_viridis_d()+
+  labs(title="¿Existe un patrón espacial?", 
+       subtitle = "Período 2019-2020",
+       caption="Fuente: GCBA")+
+  facet_wrap(~rebote)+
+  theme_void()
+#a simple viste podemos ver que los barrios que comparten un comportamiento similar tienden a estan agrupados
 
+
+#Veámoslo por comuna
 (CABA <- geoAr::get_grid(district = "CABA") %>% 
     mutate(code=substring(code, 1)) %>% # %>% #elimino los primeros caracteres, para quedarme sólo con los numéricos 
     mutate(code=as.numeric(code)))
@@ -94,21 +107,33 @@ terrenos_grilla <- terrenos_barrios %>%
   mutate(code=COMUNA)
 
 ggplot(terrenos_grilla) +
-  geom_bar(aes(y = rebote, weight = VARIACION_18_20, fill=rebote)) +
+  geom_col(aes(x = VARIACION_19_20, y = rebote, fill=rebote), show.legend = FALSE) +
   theme_minimal() +
+  scale_fill_viridis_d()+
+  labs(title="¿Cómo fue el comportamiento comunal?", 
+       subtitle = "Período 2019-2020",
+       caption="Fuente: GCBA",
+       x="", 
+       y="")+
   facet_geo(~code, grid = CABA)
 
-
-#ggplot(terrenos_barrios)+
-#  geom_sf(aes(fill=rebote), color="black",)+
-#  facet_wrap(~rebote, color="black")+
-#  labs(title="¿Cómo fue el rebote?", 
-#       caption="Fuente: GCBA")+
-#  scale_fill_viridis_d()+
-#  theme_void()
+# Cuando agrupamos los barrios por comuna, vemos que el comportamiento suele tener lógica espacialmente
+# La comuna 1 pareciera ser la que más se benefició, sin registrar caídas
+# El caso de la comuna 15 es llamativo, ya que registra los 3 comportamiento en un grado considerable
 
 
+#AVERIGUAR COMO ARMAR UN DATAFRAME ASI:
 
+ALMAGRO, PROMEDIO: X, AÑO:2018
+ALMAGRO, PROMEDIO: Y, AÑO:2019
+ALMAGRO, PROMEDIO: Z, AÑO:2020
+
+
+prueba <- terrenos_barrios %>% 
+  mutate(AÑO=NA) %>% 
+  case_when()
+  select(BARRIO, PROMEDIOUSD_2018, PROMEDIOUSD_2019, PROMEDIOUSD_2020) %>% 
+  summarise(BARRIO=BARRIO)
 
 
 
