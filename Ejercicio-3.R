@@ -2,6 +2,8 @@ library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.0
 library(sf) # Simple Features for R, CRAN v1.0-0
 library(vroom) # Read and Write Rectangular Text Data Quickly 
 library(skimr) # Compact and Flexible Summaries of Data 
+#library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data
+library(geoAr) # Argentina's Spatial Data Toolbox
 options(scipen = 999) # Eliminar notación cientifica
 
 # Cargo los datos exportados de los TPs anteriores:
@@ -58,6 +60,7 @@ terrenos_barrios <- left_join(barrios, terrenos, by="BARRIO") #recuperamos la ge
 
 # primero miraremos cómo fue el comportamiento en el último año
 ggplot()+
+  geom_sf(data=terrenos_barrios, fill="gray", color="black")+
   geom_sf(data=terrenos_barrios, aes(fill=VARIACION_19_20), alpha=.75)+
   scale_fill_continuous(limits=c(-100, 100), breaks=c(-100, -75, -50, -25, 0, 25, 50, 75, 100))+
   geom_sf_text(data=terrenos_barrios, aes(label=round(VARIACION_19_20),0), size=4, fontface = "bold")+
@@ -69,14 +72,31 @@ ggplot()+
 
 # ¿Qué barrios crecieron y cuáles cayeron en promedio?
 ggplot()+
+  geom_sf(data=terrenos_barrios, fill="gray", color="black")+
   geom_sf(data=terrenos_barrios %>% filter(VARIACION_19_20>=0), fill="chartreuse3")+
-  geom_sf(data=terrenos_barrios %>% filter(VARIACION_19_20<0), fill="brown1")+
+  geom_sf(data=terrenos_barrios %>% filter(VARIACION_19_20<0), fill="brown1", color="black")+
   scale_fill_continuous(limits=c(-100, 100), breaks=c(-100, -75, -50, -25, 0, 25, 50, 75, 100))+
   geom_sf_text(data=terrenos_barrios, aes(label=BARRIO), size=1.5)+
   labs(title="¿Qué barrios crecieron?", 
        subtitle = "Período 2019-2020",
        caption="Fuente: GCBA")+
   theme_void()
+
+
+(CABA <- geoAr::get_grid(district = "CABA") %>% 
+    mutate(code=substring(code, 1)) %>% # %>% #elimino los primeros caracteres, para quedarme sólo con los numéricos 
+    mutate(code=as.numeric(code)))
+geofacet::grid_preview(CABA)
+
+terrenos_grilla <- terrenos_barrios %>%
+  as.data.frame() %>% 
+  select(-geometry) %>% 
+  mutate(code=COMUNA)
+
+ggplot(terrenos_grilla) +
+  geom_bar(aes(y = rebote, weight = VARIACION_18_20, fill=rebote)) +
+  theme_minimal() +
+  facet_geo(~code, grid = CABA)
 
 
 #ggplot(terrenos_barrios)+
@@ -86,6 +106,8 @@ ggplot()+
 #       caption="Fuente: GCBA")+
 #  scale_fill_viridis_d()+
 #  theme_void()
+
+
 
 
 
