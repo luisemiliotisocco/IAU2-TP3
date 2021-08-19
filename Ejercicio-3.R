@@ -1,9 +1,11 @@
 library(tidyverse) # Easily Install and Load the 'Tidyverse', CRAN v1.3.0
 library(sf) # Simple Features for R, CRAN v1.0-0
-library(vroom) # Read and Write Rectangular Text Data Quickly 
-library(skimr) # Compact and Flexible Summaries of Data 
 library(geofacet) # 'ggplot2' Faceting Utilities for Geographical Data
 library(geoAr) # Argentina's Spatial Data Toolbox
+library(gganimate) # "Package currently not installed"
+library(gifski) # Highest Quality GIF Encoder
+library(png) # Read and write PNG images
+library(transformr) # Polygon and Path Transformations
 options(scipen = 999) # Eliminar notación cientifica
 
 # Cargo los datos exportados de los TPs anteriores:
@@ -11,8 +13,8 @@ options(scipen = 999) # Eliminar notación cientifica
 #   - Cotización del dolar al día de la fecha
 
 
-terrenos <- vroom ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP1/master/data/terrenos.csv", sep = ",")
-cotizacion <- vroom("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP2/master/data/cotizacion.csv")
+terrenos <- read.csv ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP1/master/data/terrenos.csv", encoding = "utf-8")
+cotizacion <- read.csv ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP2/master/data/cotizacion.csv")
 
 barrios <- st_read("data/barrios/barrios_badata.shp") %>% 
   select(BARRIO, COMUNA) #agrego la información geográfica de los barrios de CABA
@@ -21,7 +23,7 @@ barrios <- st_read("data/barrios/barrios_badata.shp") %>%
 #-----------------------------------------------------------
 ## REPASO
 
-skim(terrenos) #una mirada rápida
+skimr::skim(terrenos) #una mirada rápida
  
 ggplot()+
   geom_bar(data=terrenos, aes(y=reorder(BARRIO, -VARIACION_19_20), weight=VARIACION_19_20, fill="Variación 2019-2020"), color="black", alpha=.8)+
@@ -43,7 +45,7 @@ ggplot()+
 # evidenciamos un comportamiento interanual que llamamos "EFECTO REBOTE", donde la variación porcentual parece invertirse 
 
 
-skim(cotizacion) #una mirada rápida
+skimr::skim(cotizacion) #una mirada rápida
 
 # por otro lado, en el TP2 scrappeamos la cotización del dolar al día de la fecha
 # convertimos luego todos los valores en numéricos, listos para ser utilizados en este ejercicio
@@ -122,20 +124,60 @@ ggplot(terrenos_grilla) +
 # El caso de la comuna 15 es llamativo, ya que registra los 3 comportamiento en un grado considerable
 
 
-#AVERIGUAR COMO ARMAR UN DATAFRAME ASI:
+#Preparameos los datos para visualizar el cambio anual de otra manera
 
-ALMAGRO, PROMEDIO: X, AÑO:2018
-ALMAGRO, PROMEDIO: Y, AÑO:2019
-ALMAGRO, PROMEDIO: Z, AÑO:2020
+terrenos_barrios2018 <- terrenos_barrios %>% 
+  as.data.frame() %>% 
+  select(BARRIO, PROMEDIOUSD_2018) %>% 
+  mutate(AÑO=2018) %>% 
+  rename(PROMEDIOUSD=PROMEDIOUSD_2018)
 
+terrenos_barrios2019 <- terrenos_barrios %>% 
+  as.data.frame() %>% 
+  select(BARRIO, PROMEDIOUSD_2019) %>% 
+  mutate(AÑO=2019) %>% 
+  rename(PROMEDIOUSD=PROMEDIOUSD_2019)
 
-prueba <- terrenos_barrios %>% 
-  mutate(AÑO=NA) %>% 
-  case_when()
-  select(BARRIO, PROMEDIOUSD_2018, PROMEDIOUSD_2019, PROMEDIOUSD_2020) %>% 
-  summarise(BARRIO=BARRIO)
+terrenos_barrios2020 <- terrenos_barrios %>% 
+  as.data.frame() %>% 
+  select(BARRIO, PROMEDIOUSD_2020) %>% 
+  mutate(AÑO=2020) %>% 
+  rename(PROMEDIOUSD=PROMEDIOUSD_2020)
 
+terrenos_anual <- full_join(terrenos_barrios2018, terrenos_barrios2019) %>% 
+  full_join(terrenos_barrios2020) %>% 
+  left_join(barrios, by="BARRIO")
 
+#ahora sí conseguimos una matriz que nos permitirá animar la información para verla con mayor claridad 
 
+p <- ggplot()+
+  geom_col(data=terrenos_anual, aes(x= PROMEDIOUSD, y = BARRIO, fill=PROMEDIOUSD), show.legend = FALSE) +
+  scale_fill_viridis_c()+
+  theme_minimal()+
+  labs(title = "Año: {closest_state}", 
+       subtitle = "Variación del precio del m2 en USD durante el período 2018-2019-2020",
+       caption="Fuente: GCBA",
+       x="Precio de m2 en USD", 
+       y="Barrio")+
+  transition_states(AÑO, transition_length = 2, state_length = 1)+
+  enter_fade() + 
+  exit_shrink() +
+  ease_aes('sine-in-out')
+print(p)  
 
+# veámoslo en el territorio, para evidenciar si existe un patron territorial  
+p2 <- ggplot(terrenos_anual)+
+  geom_sf(aes(fill=PROMEDIOUSD, geometry = geometry), color="black")+
+  scale_fill_viridis_c()+
+  theme_void()+
+  labs(title = "Año: {closest_state}", 
+       subtitle = "Variación del precio del m2 en USD durante el período 2018-2019-2020",
+       caption="Fuente: GCBA",
+       x="Precio de m2 en USD", 
+       y="Barrio")+
+  transition_states(AÑO, transition_length = 2, state_length = 1)+
+  enter_fade() + 
+  exit_shrink() +
+  ease_aes('sine-in-out')
+print(p2)
 
