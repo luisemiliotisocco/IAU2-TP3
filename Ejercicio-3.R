@@ -181,3 +181,32 @@ p2 <- ggplot(terrenos_anual)+
   ease_aes('sine-in-out')
 print(p2)
 
+
+
+#¿Lo pesificamos al cambio del día?
+
+USDBLUE <- cotizacion$venta[2] #nos quedamos sólo con el valor del dolar blue
+
+terrenos_anual <- terrenos_anual %>% 
+  mutate(PROMEDIOARS=PROMEDIOUSD*USDBLUE)
+
+#recuperemos el gráficos animado de barras pero con valores en peso...
+p3 <- ggplot()+
+  geom_col(data=terrenos_anual, aes(x= PROMEDIOARS, y = BARRIO, fill=PROMEDIOARS), show.legend = FALSE) +
+  scale_fill_viridis_c()+
+  theme_minimal()+
+  labs(title = "Año: {closest_state}", 
+       subtitle = "Variación del precio del m2 en USD durante el período 2018-2019-2020",
+       caption="Fuente: GCBA",
+       x="Precio de m2 en ARS", 
+       y="Barrio")+
+  transition_states(AÑO, transition_length = 2, state_length = 1)+
+  enter_fade() + 
+  exit_shrink() +
+  ease_aes('sine-in-out')
+print(p3) 
+
+
+
+
+
