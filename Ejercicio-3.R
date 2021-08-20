@@ -14,7 +14,7 @@ options(scipen = 999) # Eliminar notación cientifica
 
 
 terrenos <- read.csv ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP1/master/data/terrenos.csv", encoding = "utf-8")
-cotizacion <- read.csv ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP2/master/data/cotizacion.csv")
+dolar <- read.csv ("https://raw.githubusercontent.com/luisemiliotisocco/IAU2-TP2/master/data/cotizacion.csv", encoding = "utf-8")
 
 barrios <- st_read("data/barrios/barrios_badata.shp") %>% 
   select(BARRIO, COMUNA) #agrego la información geográfica de los barrios de CABA
@@ -182,10 +182,9 @@ p2 <- ggplot(terrenos_anual)+
 print(p2)
 
 
-
 #¿Lo pesificamos al cambio del día?
 
-USDBLUE <- cotizacion$venta[2] #nos quedamos sólo con el valor del dolar blue
+USDBLUE <- dolar$valor[1] #nos quedamos sólo con el valor del dolar blue
 
 terrenos_anual <- terrenos_anual %>% 
   mutate(PROMEDIOARS=PROMEDIOUSD*USDBLUE)
@@ -205,8 +204,3 @@ p3 <- ggplot()+
   exit_shrink() +
   ease_aes('sine-in-out')
 print(p3) 
-
-
-
-
-
